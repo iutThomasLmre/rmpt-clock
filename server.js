@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
+const cors = require('cors');
 
 // Initialiser l'application et le serveur HTTP
 const app = express();
@@ -14,6 +15,9 @@ const rooms = new Map();
 
 // Définir le répertoire des fichiers statiques
 const publicPath = path.join(__dirname, 'public');
+
+// Activer CORS
+app.use(cors());
 
 app.get('/rooms', (req, res) => {
     const room = createRoom();
