@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chronomètre P2P</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
+  <script>
+    // Se connecter au serveur
+    const socket = io.connect('http://localhost:3000');
+
+    // Gérer la réception du chronomètre initial
+    socket.on('initialTimer', (timerValue) => {
+      updateTimer(timerValue);
+    });
+
+    // Gérer les mises à jour du chronomètre
+    socket.on('timerUpdate', (timerValue) => {
+      updateTimer(timerValue);
+    });
+
+    // Gérer les mises à jour de l'état du chronomètre
+    socket.on('timerStatus', (isRunning) => {
+      updateTimerStatus(isRunning);
+    });
+
+    // Mettre à jour le contenu HTML avec la valeur du chronomètre
+    function updateTimer(timerValue) {
+      const number = timerValue;
+      const hours = Math.floor(number / 60); // Get the number of hours
+      const minutes = number % 60; // Get the remaining minutes
+
+      // Format the hours and minutes with leading zeros
+      const formattedHours = hours.toString().padStart(2, '0');
+      const formattedMinutes = minutes.toString().padStart(2, '0');
+
+      // Create the time string
+      const timeString = `${formattedHours}:${formattedMinutes}`;
+
+      document.getElementById('timer').innerText = timeString;
+    }
+
+    // Mettre à jour l'état du chronomètre (en cours ou en pause)
+    function updateTimerStatus(isRunning) {
+      const pauseButton = document.getElementById('pauseButton');
+      pauseButton.innerText = isRunning ? 'Pause' : 'Reprendre';
+    }
+
+    // Gérer le clic sur le bouton de pause
+    function pauseTimer() {
+      socket.emit('pauseTimer');
+    }
+
+    // Gérer la connexion à une room
+    function joinRoom(url) {
+      socket.emit('joinRoom', url);
+    }
+
+    // Écouter l'événement 'joinedRoom' pour afficher l'URL de la room
+    socket.on('joinedRoom', (data) => {
+      const roomUrl = data.url;
+      document.getElementById('roomUrl').innerText = roomUrl;
+    });
+
+    // Écouter l'événement 'roomClosed' pour afficher un message de fermeture de la room
+    socket.on('roomClosed', () => {
+      document.getElementById('roomClosedMessage').innerText = 'La room a été fermée par l\'hôte.';
+    });
+
+    // Écouter l'événement 'roomNotFound' pour afficher un message si la room n'a pas été trouvée
+    socket.on('roomNotFound', () => {
+      document.getElementById('roomNotFoundMessage').innerText = 'La room demandée n\'existe pas.';
+    });
+  </script>
+</head>
+
+<body>
+  <h1>Chronomètre P2P</h1>
+  <div>URL de la room : <span id="roomUrl"></span></div>
+  <div>Chronomètre : <span id="timer"></span></div>
+  <button id="pauseButton" onclick="pauseTimer()">Pause</button>
+  <div id="roomClosedMessage"></div>
+  <div id="roomNotFoundMessage"></div>
+
+  <script>
+    const url  = window.location.href;
+    let room = url.split("/");
+    room = room[room.length - 2];
+    // Appeler la fonction pour rejoindre une room
+    joinRoom(room); // Remplacez 'room1' par l'URL de la room à rejoindre
+  </script>
+</body>
+
+</html>
