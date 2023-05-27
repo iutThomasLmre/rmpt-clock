@@ -25,7 +25,7 @@ app.get('/rooms', (req, res) => {
     app.use(`/${room.url}`, express.static(publicPath));
 
     console.log(`New room created: http://localhost:3000/${room.url}`);
-    res.send(room.url);
+    res.send({url: room.url});
 });
 
 // Gérer la connexion des clients
@@ -38,6 +38,9 @@ io.on('connection', (socket) => {
         if (room) {
             // Rejoindre la room correspondante
             socket.join(url);
+
+            room.clientSocketId.push(socket.id);
+            console.log(room.clientSocketId);
 
             if (room.hostSocketId === null) {
                 room.hostSocketId = socket.id;
@@ -64,8 +67,17 @@ io.on('connection', (socket) => {
         // Vérifier si le client déconnecté est l'hôte d'une room
         for (const room of rooms.values()) {
             if (room.hostSocketId === socket.id) {
-                io.to(room.url).emit('roomClosed');
-                rooms.delete(room.url);
+                room.hostSocketId = room.clientSocketId.length > 1 ? room.clientSocketId[1] : null;
+
+                console.log("New host server :", room.hostSocketId);
+
+                room.clientSocketId.splice(0, 1);
+
+                if (room.hostSocketId !== null) {
+                    io.to(room.hostSocketId).emit('newHost')
+                } else {
+                    // Faire en sorte d'attendre 1 heure avant la deconnexion du server
+                }
                 break;
             }
         }
@@ -122,7 +134,8 @@ function createRoom() {
     const room = {
         url: url,
         hostSocketId: null,
-        isTimerRunning: true,
+        clientSocketId: [],
+        isTimerRunning: false,
         timerValue: 0
     };
 
