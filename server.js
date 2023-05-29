@@ -76,10 +76,24 @@ io.on('connection', (socket) => {
                 if (room.hostSocketId !== null) {
                     io.to(room.hostSocketId).emit('newHost')
                 } else {
-                    // Faire en sorte d'attendre 1 heure avant la deconnexion du server
+                    setTimeout(() => {
+                        
+                        for (let j = 0; j < app._router.stack.length; j++) {
+                            if (app._router.stack[j].path === `/${room.url}/`) {
+                                console.log(app._router.stack[j]);
+                                app._router.stack.splice(j, 1);
+                            }
+                        }
+
+                        console.log(app._router.stack);
+
+                        console.log(rooms.delete(room.url));
+                        console.log("room close")}
+                    ,3600);
                 }
-                break;
+
             }
+            break;
         }
     });
 

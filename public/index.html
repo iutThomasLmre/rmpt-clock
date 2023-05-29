@@ -6,7 +6,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
   <script>
     // Se connecter au serveur
-    const socket = io.connect('https://a5b1rb5go5.execute-api.eu-west-1.amazonaws.com/');
+    const socket = io.connect('http://localhost:3000');
 
     // Gérer la réception du chronomètre initial
     socket.on('initialTimer', (timerValue) => {
@@ -42,7 +42,7 @@
     // Mettre à jour l'état du chronomètre (en cours ou en pause)
     function updateTimerStatus(isRunning) {
       const pauseButton = document.getElementById('pauseButton');
-      pauseButton.innerText = isRunning ? 'Pause' : 'Reprendre';
+      pauseButton.innerText = isRunning ? 'Pause' : 'Lancer';
     }
 
     // Gérer le clic sur le bouton de pause
